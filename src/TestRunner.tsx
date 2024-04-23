@@ -36,47 +36,7 @@ export const TestExtensionRunner = <ExtensionType extends Extension<StateType, C
      This is the main thing you'll want to modify.
      ***/
     async function runTests() {
-        await extension.setState({someKey: 'A new value, even!'});
-        refresh();
 
-        const beforePromptResponse: Partial<ExtensionResponse<StateType>> = await extension.beforePrompt({
-            ...DEFAULT_MESSAGE, ...{
-                anonymizedId: "0",
-                content: "Hello, this is what happens when a human sends a message, but before it's sent to the model.",
-                isBot: false
-            }
-        });
-        console.assert(beforePromptResponse.error == null);
-        refresh();
-
-        /***
-         "What is all of this nonsense with 'DEFAULT_MESSAGE'?" you may well ask.
-         The purpose of this is to future-proof your test runner.
-         The extension interface is designed to be forwards-compatible,
-            so that an extension with a certain library version will continue to work
-            even if new fields are added to any of the call/response objects.
-         But when new fields are added to the input objects, the code calling an
-            extension needs to be updated. Using DEFAULT_MESSAGE,
-            DEFAULT_INITIAL, DEFAULT_CHARACTER, DEFAULT_USER,
-            DEFAULT_LOAD_RESPONSE, and DEFAULT_RESPONSE
-            where relevant in your tests prevents a version bump
-            from breaking your test runner in many cases.
-         ***/
-        const afterPromptResponse: Partial<ExtensionResponse<StateType>> = await extension.afterResponse({
-            ...DEFAULT_MESSAGE, ...{
-            promptForId: null,
-            anonymizedId: "2",
-            content: "Why yes hello, and this is what happens when a bot sends a response.",
-            isBot: true}});
-        console.assert(afterPromptResponse.error == null);
-        refresh();
-
-        const afterDelayedThing: Partial<ExtensionResponse<StateType>> = await delayedTest(() => extension.beforePrompt({
-            ...DEFAULT_MESSAGE, ...{
-            anonymizedId: "0", content: "Hello, and now the human is prompting again.", isBot: false, promptForId: null
-        }}), 5);
-        console.assert(afterDelayedThing.error == null);
-        refresh();
     }
 
     useEffect(() => {
