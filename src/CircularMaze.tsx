@@ -126,7 +126,6 @@ const CircularMaze = ({userLocation, rows}: CircularMazeProps) => {
             facingY *= -1;
             let userX = (posX + rows) / (rows*2) * width * pixelRatio;
             let userY = (posY + rows) / (rows*2) * width * pixelRatio;
-            userY -= ((width / rows) * (posY));
             ctx.fillStyle = '#f00';
             ctx.beginPath();
             ctx.moveTo(userX, userY);
