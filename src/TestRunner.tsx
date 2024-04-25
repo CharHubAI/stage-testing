@@ -36,7 +36,12 @@ export const TestExtensionRunner = <ExtensionType extends Extension<StateType, C
      This is the main thing you'll want to modify.
      ***/
     async function runTests() {
-
+        const directions = ['up', 'down', 'right', 'left'];
+        while(!extension.won()) {
+            await new Promise(f => setTimeout(f, 100));
+            const randomIndex = Math.floor(Math.random() * directions.length);
+            await extension.beforePrompt({...DEFAULT_MESSAGE, content: directions[randomIndex]}).then(() => setNode(new Date()));
+        }
     }
 
     useEffect(() => {

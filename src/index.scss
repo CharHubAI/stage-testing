@@ -34,48 +34,34 @@ main {
   overflow: hidden;
 }
 
-.maze {
-  width: 100%;
-  max-width: 1000px;
-  max-height: 1000px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-grow: 1;
-}
-
 canvas {
-  border: 1px solid black;
+  border: 0;
 }
 canvas.no-border {
   border: none;
 }
 
-button {
-  padding: 8px 20px;
-  margin: 30px 4px;
-  background: white;
-  border: 2px solid #2d84da;
-  border-radius: 8px;
-  color: #333;
-  font-size: 16px;
-  cursor: pointer;
-  outline: none;
-  transition: all 100ms ease-in;
-}
-button:hover {
-  background: rgba(45, 132, 218, 0.4);
-  transition: all 100ms ease-out;
-}
-button[disabled] {
-  border-color: #aaa;
-  background: white !important;
-  color: #666;
-  cursor: default;
+img {
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
 }
 
 
 .maze {
   height: 100vh;
-  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  opacity: 70%;
+  transform: translate(-50%, -50%);
+  background-color: darkolivegreen;
 }
