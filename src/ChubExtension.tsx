@@ -196,7 +196,7 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
         for (let r = -1; r < 2; r++) {
             for (let c = -1; c < 2; c++) {
                 this.maze[this.userLocation.posX + r][this.userLocation.posY + c].visited = true;
-                if(!this.visited.hasOwnProperty(this.userLocation.posX + r)) {
+                if (!this.visited[this.userLocation.posX + r]) {
                     this.visited[this.userLocation.posX + r] = new Set();
                 }
                 this.visited[this.userLocation.posX + r].add(this.userLocation.posY + c);
