@@ -158,9 +158,17 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
             if(content.includes('```')) {
                 modifiedMessage = content.substring(0, content.indexOf('```'));
             }
-
+            let prompt = this.imagePromptPrefix + modifiedMessage != null ? modifiedMessage : content;
+            if(content.includes('<')) {
+                let end = content.length;
+                if(content.includes('>')) {
+                    end = content.indexOf('>');
+                    modifiedMessage = modifiedMessage != null ? modifiedMessage.substring(0, end+1) : content.substring(0, end + 1);
+                }
+                prompt = content.substring(content.indexOf('<') + 1, end);
+            }
             generationService.makeImage({aspect_ratio: AspectRatio.SQUARE,
-                negative_prompt: "", prompt: this.imagePromptPrefix + modifiedMessage != null ? modifiedMessage : content,
+                negative_prompt: "", prompt: this.imagePromptPrefix + prompt,
                 seed: 0}).then(image => {
                 this.image = image != null ? image.url : '';
             });
