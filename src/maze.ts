@@ -15,7 +15,7 @@ export const SIDES: { [key in MazeWall]: MazeWall[] } = {
 };
 
 export interface MazeCell {
-    walls: { [key: MazeWall]: boolean };
+    walls: { [key in MazeWall]: boolean };
     colNum: number;
     rowNum: number;
     visited: boolean;

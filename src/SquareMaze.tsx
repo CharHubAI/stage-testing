@@ -82,8 +82,12 @@ class Maze {
         for (let r = 0; r < this.rows; r++) {
             let row = [];
             for (let c = 0; c < this.columns; c++) {
-                let walls: {[key: MazeWall]: boolean} = {};
-                Object.values(MazeWall).forEach(wall => walls[wall as MazeWall] = true);
+                let walls: { [key in MazeWall]: boolean } = {
+                    [MazeWall.up]: true,
+                    [MazeWall.down]: true,
+                    [MazeWall.left]: true,
+                    [MazeWall.right]: true,
+                };
                 let cell: MazeCell = {
                     colNum: c, rowNum: r, visited: false, walls
                 };
