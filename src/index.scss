@@ -42,7 +42,6 @@ canvas.no-border {
 }
 
 img {
-  height: 100vh;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -52,9 +51,7 @@ img {
   transform: translate(-50%, -50%);
 }
 
-
 .maze {
-  height: 100vh;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -65,3 +62,33 @@ img {
   transform: translate(-50%, -50%);
   background-color: darkolivegreen;
 }
+
+
+// Take full height if screen is wider
+@media (min-aspect-ratio: 1/1) {
+  img {
+    height: 100vh;
+  }
+  .quit {
+    height: 100vh;
+  }
+  .playing {
+    width: 100vh;
+  }
+}
+
+// Take full width if screen is taller
+@media (max-aspect-ratio: 1/1) {
+  img {
+    width: 100vw;
+  }
+  .quit {
+    width: 100vw;
+  }
+  .playing {
+    height: 100vh;
+  }
+}
+
+
+

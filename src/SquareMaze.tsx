@@ -9,7 +9,7 @@ const SquareMaze = ({ grid, userLocation, quit }) => {
         drawMaze(grid, userLocation, quit);
     }, [grid, userLocation.posX, userLocation.posY, quit]);
 
-    return <canvas ref={canvasRef} className="maze" />;
+    return <canvas ref={canvasRef} className={quit ? "maze quit" : "maze playing"} />;
 };
 
 export const generateMaze = (rows, columns): MazeGrid => {
