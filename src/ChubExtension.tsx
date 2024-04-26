@@ -2,6 +2,7 @@ import {ReactElement} from "react";
 import {AspectRatio, Extension, ExtensionResponse, generationService, InitialData, Message} from "chub-extensions-ts";
 import {LoadResponse} from "chub-extensions-ts/dist/types/load";
 import SquareMaze, {generateMaze} from "./SquareMaze.tsx";
+import {deserializeVisited} from "./solver.ts";
 
 type MessageStateType = {userLocation: { posX: number, posY: number, facingX: number, facingY: number }, image: string};
 
@@ -55,7 +56,8 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
             this.userLocation = {posX: middle, posY: middle, facingX: 0, facingY: 1};
             this.image = '';
         }
-        this.visited = chatState != null ? chatState.visited : {};
+        // The strange serde here is because JSON doesn't allow numbers as keys.
+        this.visited = chatState != null ? deserializeVisited(chatState.visited) : {};
         this.visit();
     }
 
@@ -190,6 +192,9 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
             systemMessage,
             error: null
         };
+
+
+
     }
 
     visit() {

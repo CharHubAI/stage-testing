@@ -60,3 +60,22 @@ export function solve(
 
     return new Set(solution.map(item => `${item[0]}-${item[1]}`));
 }
+
+export function deserializeVisited(obj: any): { [key: number]: Set<number> } {
+    const visited: { [key: number]: Set<number> } = {};
+
+    for (const key in obj.visited) {
+        if (Object.prototype.hasOwnProperty.call(obj.visited, key)) {
+            const keyNumber = parseInt(key, 10);
+            const value = obj.visited[key];
+
+            if (value instanceof Set) {
+                visited[keyNumber] = value as Set<number>;
+            } else {
+                visited[keyNumber] = new Set();
+            }
+        }
+    }
+
+    return visited;
+}
