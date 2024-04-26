@@ -133,8 +133,8 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
             isBot
         } = botMessage;
         let modifiedMessage = null;
-        if(anonymizedId == this.mazeId && content.includes('```')) {
-            modifiedMessage = content.substring(0, content.indexOf('```'));
+        if(anonymizedId == this.mazeId) {
+            modifiedMessage = content.includes('```') ? content.substring(0, content.indexOf('```')) : content;
             generationService.makeImage({aspect_ratio: AspectRatio.SQUARE,
                 negative_prompt: "", prompt: this.imagePromptPrefix + modifiedMessage,
                 seed: 0}).then(image => {
