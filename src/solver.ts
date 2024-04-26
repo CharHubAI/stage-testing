@@ -1,17 +1,19 @@
-export function checkNeighbours(grid, rowNum, colNum, visited=null) {
+import {MazeCell, MazeGrid, MazeWall} from "./maze.ts";
+
+export function checkNeighbours(grid: MazeGrid, rowNum, colNum, visited=null) {
     let row = rowNum;
     let col = colNum;
     let neighbours = [];
 
-    let top = row !== 0 ? grid[row - 1][col] : undefined;
-    let right = col !== grid.length - 1 ? grid[row][col + 1] : undefined;
-    let bottom = row !== grid.length - 1 ? grid[row + 1][col] : undefined;
-    let left = col !== 0 ? grid[row][col - 1] : undefined;
+    let top: MazeCell | undefined = row !== 0 ? grid[row - 1][col] : undefined;
+    let right: MazeCell | undefined = col !== grid.length - 1 ? grid[row][col + 1] : undefined;
+    let bottom: MazeCell | undefined = row !== grid.length - 1 ? grid[row + 1][col] : undefined;
+    let left: MazeCell | undefined = col !== 0 ? grid[row][col - 1] : undefined;
 
-    if (top && ((visited == null && !top.visited) || (visited != null && !visited[top.rowNum][top.colNum] && !top.walls.down))) neighbours.push(top);
-    if (right && ((visited == null && !right.visited) || (visited != null && !visited[right.rowNum][right.colNum] && !right.walls.left))) neighbours.push(right);
-    if (bottom && ((visited == null && !bottom.visited) || (visited != null && !visited[bottom.rowNum][bottom.colNum] && !bottom.walls.up))) neighbours.push(bottom);
-    if (left && ((visited == null && !left.visited) || (visited != null && !visited[left.rowNum][left.colNum] && !left.walls.right))) neighbours.push(left);
+    if (top && ((visited == null && !top.visited) || (visited != null && !visited[top.rowNum][top.colNum] && !top.walls[MazeWall.down]))) neighbours.push(top);
+    if (right && ((visited == null && !right.visited) || (visited != null && !visited[right.rowNum][right.colNum] && !right.walls[MazeWall.left]))) neighbours.push(right);
+    if (bottom && ((visited == null && !bottom.visited) || (visited != null && !visited[bottom.rowNum][bottom.colNum] && !bottom.walls[MazeWall.up]))) neighbours.push(bottom);
+    if (left && ((visited == null && !left.visited) || (visited != null && !visited[left.rowNum][left.colNum] && !left.walls[MazeWall.right]))) neighbours.push(left);
 
     if (neighbours.length !== 0) {
         let random = Math.floor(Math.random() * neighbours.length);
@@ -22,7 +24,7 @@ export function checkNeighbours(grid, rowNum, colNum, visited=null) {
 }
 
 export function solve(
-    maze,
+    maze: MazeGrid,
     startX = 0,
     startY = 0,
 ): Set<string> {
@@ -38,7 +40,7 @@ export function solve(
     const solution = [];
     let currentX = startX;
     let currentY = startY;
-    let option = null;
+    let option: MazeCell | null = null;
 
     while (currentX !== 0 && currentX !== maze.length - 1 && currentY !== 0 && currentY !== maze.length - 1) {
         visited[currentX][currentY] = true;

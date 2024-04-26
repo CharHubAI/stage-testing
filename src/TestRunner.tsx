@@ -37,9 +37,9 @@ export const TestExtensionRunner = <ExtensionType extends Extension<InitStateTyp
      ***/
     async function runTests() {
         const directions = ['up', 'down', 'right', 'left'];
-        let tries = 10;
+        let tries = 30;
         while(!extension.won() && tries > 0) {
-            await new Promise(f => setTimeout(f, 1000));
+            await new Promise(f => setTimeout(f, 500));
             const randomIndex = Math.floor(Math.random() * directions.length);
             await extension.beforePrompt({...DEFAULT_MESSAGE, content: directions[randomIndex]}).then(() => setNode(new Date()));
             tries -= 1;

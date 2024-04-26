@@ -3,6 +3,7 @@ import {AspectRatio, Extension, ExtensionResponse, generationService, InitialDat
 import {LoadResponse} from "chub-extensions-ts/dist/types/load";
 import SquareMaze, {generateMaze} from "./SquareMaze.tsx";
 import {deserializeVisited} from "./solver.ts";
+import {canMove, deserializeMazeCell, MazeGrid, MazeWall} from "./maze.ts";
 
 type MessageStateType = {userLocation: { posX: number, posY: number, facingX: number, facingY: number }, image: string};
 
@@ -12,12 +13,14 @@ type ChatStateType = {
     visited: {[key: number]: Set<number>}
 }
 
-type InitStateType = any;
+type InitStateType = {
+    maze: MazeGrid
+};
 
 export class ChubExtension implements Extension<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
     userLocation: { posX: number, posY: number, facingX: number, facingY: number };
-    maze: any
+    maze: MazeGrid
     mazeId: string
     size: number
     imagePromptPrefix: string
@@ -39,6 +42,13 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
         if(initState != null && initState.hasOwnProperty('maze') && initState.maze != null) {
             this.maze = initState.maze
             this.size = this.maze.length;
+            this.maze.forEach(row => {
+                row.forEach(col => {
+                    // An example of a common serde issue, when an enum is used as a key instead of "normal"
+                    // string and field names.
+                    col.walls = deserializeMazeCell(col).walls;
+                })
+            })
         } else {
             this.maze = generateMaze(this.size, this.size);
         }
@@ -86,40 +96,32 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
             promptForId
         } = userMessage;
         let moved = false;
-        // Yes this is a dumb way to do this.
-        if(content.includes('right')) {
-            while(!this.maze[this.userLocation.posX][this.userLocation.posY].walls.right
-            && (!moved || (this.maze[this.userLocation.posX][this.userLocation.posY].walls.up && this.maze[this.userLocation.posX][this.userLocation.posY].walls.down))
-            && this.userLocation.posY < this.size - 1) {
-                this.userLocation.posY += 1;
-                moved = true;
-                this.visit();
+        Object.values(MazeWall).forEach(wall => {
+            if(content.includes(wall)) {
+                const wallEnum = MazeWall[wall as keyof typeof MazeWall];
+                while(canMove(wallEnum, this.maze[this.userLocation.posX][this.userLocation.posY], moved, this.userLocation, this.size)) {
+                    switch (wallEnum) {
+                        case MazeWall.right:
+                            this.userLocation.posY += 1;
+                            break;
+                        case MazeWall.left:
+                            this.userLocation.posY -= 1;
+                            break;
+                        case MazeWall.up:
+                            this.userLocation.posX -= 1;
+                            break;
+                        case MazeWall.down:
+                            this.userLocation.posX += 1;
+                            break;
+                        default:
+                            break;
+                    }
+                    moved = true;
+                    this.visit();
+                }
             }
-        } else if (content.includes('left')) {
-            while(!this.maze[this.userLocation.posX][this.userLocation.posY].walls.left
-            && (!moved || (this.maze[this.userLocation.posX][this.userLocation.posY].walls.up && this.maze[this.userLocation.posX][this.userLocation.posY].walls.down))
-            && this.userLocation.posY > 0) {
-                this.userLocation.posY -= 1;
-                moved = true;
-                this.visit();
-            }
-        } else if (content.includes('up')) {
-            while(!this.maze[this.userLocation.posX][this.userLocation.posY].walls.up
-            && (!moved || (this.maze[this.userLocation.posX][this.userLocation.posY].walls.left && this.maze[this.userLocation.posX][this.userLocation.posY].walls.right))
-            && this.userLocation.posX > 0) {
-                this.userLocation.posX -= 1;
-                moved = true;
-                this.visit();
-            }
-        } else if (content.includes('down')) {
-            while(!this.maze[this.userLocation.posX][this.userLocation.posY].walls.down
-            && (!moved || (this.maze[this.userLocation.posX][this.userLocation.posY].walls.left && this.maze[this.userLocation.posX][this.userLocation.posY].walls.right))
-            && this.userLocation.posX < this.size - 1) {
-                this.userLocation.posX += 1;
-                moved = true;
-                this.visit();
-            }
-        } else if (content.includes('quit')) {
+        });
+        if (content.includes('quit')) {
             this.quit = true;
         } else if (content.includes('retry')) {
             this.quit = false;
@@ -164,16 +166,16 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
             });
             const current = this.maze[this.userLocation.posX][this.userLocation.posY];
             let avail = [];
-            if(!current.walls.up) {
+            if(!current.walls[MazeWall.up]) {
                 avail.push('up');
             }
-            if(!current.walls.down) {
+            if(!current.walls[MazeWall.down]) {
                 avail.push('down');
             }
-            if(!current.walls.left) {
+            if(!current.walls[MazeWall.left]) {
                 avail.push('left');
             }
-            if(!current.walls.right) {
+            if(!current.walls[MazeWall.right]) {
                 avail.push('right');
             }
             if(!this.quit) {
