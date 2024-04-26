@@ -3,12 +3,17 @@ import {AspectRatio, Extension, ExtensionResponse, generationService, InitialDat
 import {LoadResponse} from "chub-extensions-ts/dist/types/load";
 import SquareMaze, {generateMaze} from "./SquareMaze.tsx";
 
-type StateType = {userLocation: { posX: number, posY: number, facingX: number, facingY: number }, image: string,
-    visited: {[key: number]: Set<number>}};
+type MessageStateType = {userLocation: { posX: number, posY: number, facingX: number, facingY: number }, image: string};
 
 type ConfigType = { size?: number | null, imagePromptPrefix?: string | null };
 
-export class ChubExtension implements Extension<StateType, ConfigType> {
+type ChatStateType = {
+    visited: {[key: number]: Set<number>}
+}
+
+type InitStateType = any;
+
+export class ChubExtension implements Extension<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
     userLocation: { posX: number, posY: number, facingX: number, facingY: number };
     maze: any
@@ -17,15 +22,18 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
     imagePromptPrefix: string
     image: string
     visited: {[key: number]: Set<number>}
+    quit: boolean
 
-    constructor(data: InitialData<StateType, ConfigType>) {
+    constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         const {
-            characters,     // @type:  { [key: string]: Character }
-            users,              // @type:  { [key: string]: User}
-            config,                             //  @type:  ConfigType
-            lastState,                           //  @type:  StateType
+            characters,
+            users,
+            config,
+            messageState,
+            chatState,
             initState
         } = data;
+        this.quit = false;
         this.size = config != null && config.hasOwnProperty('size') && config.size != null ? config.size : 15;
         if(initState != null && initState.hasOwnProperty('maze') && initState.maze != null) {
             this.maze = initState.maze
@@ -36,38 +44,39 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
         if(config != null && config.hasOwnProperty('imagePromptPrefix') && config.imagePromptPrefix != null) {
             this.imagePromptPrefix = config.imagePromptPrefix;
         } else {
-            this.imagePromptPrefix = 'An ethereal vision of this in a fog, digital art\n';
+            this.imagePromptPrefix = 'Highest quality, 8K, digital art\n';
         }
         this.mazeId = Object.keys(characters).filter(charId => characters[charId].name == 'The Maze')[0];
-        if(lastState != null) {
-            this.userLocation = lastState.userLocation;
-            this.image = lastState.image;
-            this.visited = lastState.visited;
+        if(messageState != null) {
+            this.userLocation = messageState.userLocation;
+            this.image = messageState.image;
         } else {
             const middle = Math.floor(this.size / 2);
             this.userLocation = {posX: middle, posY: middle, facingX: 0, facingY: 1};
             this.image = '';
-            this.visited = {};
         }
+        this.visited = chatState != null ? chatState.visited : {};
         this.visit();
     }
 
-    async load(): Promise<Partial<LoadResponse>> {
+    async load(): Promise<Partial<LoadResponse<InitStateType, ChatStateType, MessageStateType>>> {
         return {
             success: true,
             error: null,
-            initState: { maze: this.maze }
+            initState: { maze: this.maze },
+            messageState: {userLocation: {...this.userLocation}, image: this.image},
+            chatState: {visited: this.visited},
         };
     }
 
-    async setState(state: StateType): Promise<void> {
+    async setState(state: MessageStateType): Promise<void> {
         if (state != null) {
             this.userLocation = {...this.userLocation, ...state.userLocation};
             this.image = state.image;
         }
     }
 
-    async beforePrompt(userMessage: Message): Promise<Partial<ExtensionResponse<StateType>>> {
+    async beforePrompt(userMessage: Message): Promise<Partial<ExtensionResponse<ChatStateType, MessageStateType>>> {
         const {
             content,
             anonymizedId,
@@ -108,15 +117,22 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
                 moved = true;
                 this.visit();
             }
+        } else if (content.includes('quit')) {
+            this.quit = true;
+        } else if (content.includes('retry')) {
+            this.quit = false;
         }
         let modifiedMessage = null;
         let extensionMessage = null;
         if(this.won()) {
             extensionMessage = "-- Important System Note: the player(s) have reached the exit of The Maze! Game Won! --"
+        } else if (this.quit) {
+            extensionMessage = "-- Important System Note: the player(s) have given up and quit. The way out is now revealed to them, but they have lost forever. --";
         }
         return {
             extensionMessage,
-            state: {userLocation: {...this.userLocation}, image: this.image, visited: this.visited},
+            messageState: {userLocation: {...this.userLocation}, image: this.image},
+            chatState: {visited: this.visited},
             modifiedMessage,
             error: null
         };
@@ -126,21 +142,24 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
         return this.userLocation.posX == 0 || this.userLocation.posY == 0 || this.userLocation.posY == this.size - 1 || this.userLocation.posX == this.size - 1;
     }
 
-    async afterResponse(botMessage: Message): Promise<Partial<ExtensionResponse<StateType>>> {
+    async afterResponse(botMessage: Message): Promise<Partial<ExtensionResponse<ChatStateType, MessageStateType>>> {
         const {
             content,
             anonymizedId,
             isBot
         } = botMessage;
         let modifiedMessage = null;
+        let systemMessage = "```\nAvailable Directions:\n";
         if(anonymizedId == this.mazeId) {
-            modifiedMessage = content.includes('```') ? content.substring(0, content.indexOf('```')) : content;
+            if(content.includes('```')) {
+                modifiedMessage = content.substring(0, content.indexOf('```'));
+            }
+
             generationService.makeImage({aspect_ratio: AspectRatio.SQUARE,
-                negative_prompt: "", prompt: this.imagePromptPrefix + modifiedMessage,
+                negative_prompt: "", prompt: this.imagePromptPrefix + modifiedMessage != null ? modifiedMessage : content,
                 seed: 0}).then(image => {
                 this.image = image != null ? image.url : '';
             });
-            modifiedMessage += "```\nAvailable Directions:\n";
             const current = this.maze[this.userLocation.posX][this.userLocation.posY];
             let avail = [];
             if(!current.walls.up) {
@@ -155,13 +174,20 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
             if(!current.walls.right) {
                 avail.push('right');
             }
-            modifiedMessage += `[ ${avail.join(', ')} ]`;
-            modifiedMessage += "\n```";
+            if(!this.quit) {
+                avail.push('quit');
+            } else {
+                avail.push('retry');
+            }
+            systemMessage += `[ ${avail.join(', ')} ]`;
+            systemMessage += "\n```";
         }
         return {
             extensionMessage: null,
-            state: {userLocation: {...this.userLocation}, image: this.image, visited: this.visited},
+            messageState: {userLocation: {...this.userLocation}, image: this.image},
+            chatState: {visited: this.visited},
             modifiedMessage,
+            systemMessage,
             error: null
         };
     }
@@ -181,7 +207,7 @@ export class ChubExtension implements Extension<StateType, ConfigType> {
 
     render(): ReactElement {
         return <>
-            <SquareMaze grid={this.maze} userLocation={this.userLocation} />
+            <SquareMaze grid={this.maze} userLocation={this.userLocation} quit={this.quit} />
             {this.image != null && this.image != '' && <img src={this.image} />}
         </>
     }

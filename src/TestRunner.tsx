@@ -5,16 +5,16 @@ import {DEFAULT_INITIAL, DEFAULT_MESSAGE, Extension, ExtensionResponse, InitialD
 // Modify this JSON to include whatever character/user information you want to test.
 import InitData from './assets/test-init.json';
 
-export interface TestExtensionRunnerProps<ExtensionType extends Extension<StateType, ConfigType>, StateType, ConfigType> {
-    factory: (data: InitialData<StateType, ConfigType>) => ExtensionType;
+export interface TestExtensionRunnerProps<ExtensionType extends Extension<InitStateType, ChatStateType, MessageStateType, ConfigType>, InitStateType, ChatStateType, MessageStateType, ConfigType> {
+    factory: (data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) => ExtensionType;
 }
 
 /***
  This is a testing class for running an extension locally when testing,
     outside the context of an active chat. See runTests() below for the main idea.
  ***/
-export const TestExtensionRunner = <ExtensionType extends Extension<StateType, ConfigType>,
-    StateType, ConfigType>({ factory }: TestExtensionRunnerProps<ExtensionType, StateType, ConfigType>) => {
+export const TestExtensionRunner = <ExtensionType extends Extension<InitStateType, ChatStateType, MessageStateType, ConfigType>,
+    InitStateType, ChatStateType, MessageStateType, ConfigType>({ factory }: TestExtensionRunnerProps<ExtensionType, InitStateType, ChatStateType, MessageStateType, ConfigType>) => {
 
     // You may need to add a @ts-ignore here,
     //     as the linter doesn't always like the idea of reading types arbitrarily from files
@@ -37,10 +37,15 @@ export const TestExtensionRunner = <ExtensionType extends Extension<StateType, C
      ***/
     async function runTests() {
         const directions = ['up', 'down', 'right', 'left'];
-        while(!extension.won()) {
-            await new Promise(f => setTimeout(f, 100));
+        let tries = 10;
+        while(!extension.won() && tries > 0) {
+            await new Promise(f => setTimeout(f, 1000));
             const randomIndex = Math.floor(Math.random() * directions.length);
             await extension.beforePrompt({...DEFAULT_MESSAGE, content: directions[randomIndex]}).then(() => setNode(new Date()));
+            tries -= 1;
+        }
+        if(!extension.won()) {
+            await extension.beforePrompt({...DEFAULT_MESSAGE, content: 'quit'}).then(() => setNode(new Date()));
         }
     }
 

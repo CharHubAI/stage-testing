@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
+import {checkNeighbours, solve} from "./solver.ts";
 
-const SquareMaze = ({ grid, userLocation }) => {
+const SquareMaze = ({ grid, userLocation, quit }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        drawMaze(grid, userLocation);
-    }, [grid, userLocation.posX, userLocation.posY]);
+        drawMaze(grid, userLocation, quit);
+    }, [grid, userLocation.posX, userLocation.posY, quit]);
 
     return <canvas ref={canvasRef} className="maze" />;
 };
@@ -23,7 +24,7 @@ export const generateMaze = (rows, columns) => {
     return maze.grid;
 };
 
-const drawMaze = (grid, userLocation) => {
+const drawMaze = (grid, userLocation, quit: boolean) => {
     const canvas: HTMLCanvasElement = document.querySelector('.maze');
     const ctx = canvas.getContext('2d');
     const size = 500;
@@ -42,14 +43,18 @@ const drawMaze = (grid, userLocation) => {
     // Calculate the translation offset to center the user's location
     const offsetX = (scaledSize - size) / 2 - (userLocation.posY * cellSize * zoomScale - size / 2) - cellSize/2;
     const offsetY = (scaledSize - size) / 2 - (userLocation.posX * cellSize * zoomScale - size / 2) - cellSize/2;
-
-    ctx.translate(offsetX, offsetY);
-    ctx.scale(zoomScale, zoomScale);
+    let solution = null;
+    if(!quit) {
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(zoomScale, zoomScale);
+    } else {
+        solution = solve(grid, userLocation.posX, userLocation.posY);
+    }
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < columns; c++) {
             const inside = r === userLocation.posX && c === userLocation.posY;
-            grid[r][c].show(size, rows, columns, inside);
+            grid[r][c].show(size, rows, columns, inside, solution);
         }
     }
 
@@ -85,23 +90,9 @@ class Maze {
         this.grid[this.rows - 1][this.columns - 1].goal = true;
     }
 
-    showSelf() {
-        const canvas: HTMLCanvasElement = document.querySelector('.maze');
-        const ctx = canvas.getContext('2d');
-        canvas.width = this.size;
-        canvas.height = this.size;
-        canvas.style.background = 'black';
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.columns; c++) {
-                let grid = this.grid;
-                grid[r][c].show(this.size, this.rows, this.columns);
-            }
-        }
-    }
-
     draw() {
         this.current.visited = true;
-        let next = this.current.checkNeighbours(this.grid);
+        let next = checkNeighbours(this.grid, this.current.rowNum, this.current.colNum);
         if (next) {
             next.visited = true;
             this.grid[this.current.rowNum][this.current.colNum].removeWalls(this.grid[this.current.rowNum][this.current.colNum], this.grid[next.rowNum][next.colNum]);
@@ -138,29 +129,6 @@ class Cell {
             left: true,
         };
         this.goal = false;
-    }
-
-    checkNeighbours(grid) {
-        let row = this.rowNum;
-        let col = this.colNum;
-        let neighbours = [];
-
-        let top = row !== 0 ? grid[row - 1][col] : undefined;
-        let right = col !== grid.length - 1 ? grid[row][col + 1] : undefined;
-        let bottom = row !== grid.length - 1 ? grid[row + 1][col] : undefined;
-        let left = col !== 0 ? grid[row][col - 1] : undefined;
-
-        if (top && !top.visited) neighbours.push(top);
-        if (right && !right.visited) neighbours.push(right);
-        if (bottom && !bottom.visited) neighbours.push(bottom);
-        if (left && !left.visited) neighbours.push(left);
-
-        if (neighbours.length !== 0) {
-            let random = Math.floor(Math.random() * neighbours.length);
-            return neighbours[random];
-        } else {
-            return undefined;
-        }
     }
 
     drawTopWall(x, y, size, columns, rows) {
@@ -222,7 +190,7 @@ class Cell {
         }
     }
 
-    show(size, rows, columns, inside) {
+    show(size, rows, columns, inside, solution: Set<string> | null) {
         const canvas: HTMLCanvasElement = document.querySelector('.maze');
         const ctx = canvas.getContext('2d');
         let x = (this.colNum * size) / columns;
@@ -235,7 +203,7 @@ class Cell {
         if (this.walls.right) this.drawRightWall(x, y, size, columns, rows);
         if (this.walls.down) this.drawBottomWall(x, y, size, columns, rows);
         if (this.walls.left) this.drawLeftWall(x, y, size, columns, rows);
-        if (this.visited) {
+        if (this.visited || solution != null) {
             ctx.fillRect(x + 1, y + 1, (size / columns) + width,  (size / rows) + width);
         } else if (this.goal || this.rowNum == 0 || this.colNum == 0 || this.rowNum == rows-1 || this.colNum == columns-1) {
             ctx.fillStyle = 'green';
@@ -246,6 +214,9 @@ class Cell {
         }
         if(inside) {
             ctx.fillStyle = 'indianred';
+            ctx.fillRect(x + 10, y + 10, (size /columns) - 20, (size/rows) - 20);
+        } else if (solution != null && solution.has(`${this.rowNum}-${this.colNum}`)) {
+            ctx.fillStyle = 'orange';
             ctx.fillRect(x + 10, y + 10, (size /columns) - 20, (size/rows) - 20);
         }
     }
