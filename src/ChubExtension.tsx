@@ -1,5 +1,5 @@
 import {ReactElement} from "react";
-import {AspectRatio, Extension, ExtensionResponse, generationService, InitialData, Message} from "chub-extensions-ts";
+import {AspectRatio, Extension, ExtensionResponse, InitialData, Message} from "chub-extensions-ts";
 import {LoadResponse} from "chub-extensions-ts/dist/types/load";
 import SquareMaze, {generateMaze} from "./SquareMaze.tsx";
 import {deserializeVisited} from "./solver.ts";
@@ -17,8 +17,7 @@ type InitStateType = {
     maze: MazeGrid
 };
 
-export class ChubExtension implements Extension<InitStateType, ChatStateType, MessageStateType, ConfigType> {
-
+export class ChubExtension extends Extension<InitStateType, ChatStateType, MessageStateType, ConfigType> {
     userLocation: { posX: number, posY: number, facingX: number, facingY: number };
     maze: MazeGrid
     mazeId: string
@@ -29,6 +28,7 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
     quit: boolean
 
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
+        super(data);
         const {
             characters,
             users,
@@ -167,7 +167,7 @@ export class ChubExtension implements Extension<InitStateType, ChatStateType, Me
                 }
                 prompt = content.substring(content.indexOf('<') + 1, end);
             }
-            generationService.makeImage({aspect_ratio: AspectRatio.SQUARE,
+            this.generator.makeImage({aspect_ratio: AspectRatio.SQUARE,
                 negative_prompt: "", prompt: this.imagePromptPrefix + prompt,
                 seed: 0}).then(image => {
                 this.image = image != null ? image.url : '';
