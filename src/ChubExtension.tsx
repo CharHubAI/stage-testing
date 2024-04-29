@@ -55,7 +55,7 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
         if(config != null && config.hasOwnProperty('imagePromptPrefix') && config.imagePromptPrefix != null) {
             this.imagePromptPrefix = config.imagePromptPrefix;
         } else {
-            this.imagePromptPrefix = 'Highest quality, 8K, digital art\n';
+            this.imagePromptPrefix = 'Highest quality, 8K, digital art, ';
         }
         this.mazeId = Object.keys(characters).filter(charId => characters[charId].name == 'The Maze')[0];
         if(messageState != null) {

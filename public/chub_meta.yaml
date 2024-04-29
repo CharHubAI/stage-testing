@@ -33,6 +33,27 @@ needs_config: false
 # Config schemas are a superset of JSON Schema format
 # @link https://json-schema.org
 config_schema:
+  type: object
+  title: Maze Configuration
+  description: Settings for the maze extension.
+  properties:
+    size:
+      title: "Maze Size"
+      description: "The number of tiles wide (and tall) the maze is. You start in the center."
+      type: integer
+      minimum: 3
+      maximum: 60
+      default: 9
+      multipleOf: 3
+    imagePromptPrefix:
+      type: string
+      maxLength: 400
+      title: "Image Prompt Prefix"
+      description: "Experimental, may do nothing. A prefix to use for generated images."
+      default: "Highest quality, 8K, digital art, "
+  required:
+    - size
+    - imagePromptPrefix
 
 # Whether this is state-based in a history-sensitive way,
 #   rather than being able to work with latest-only data.
