@@ -43,7 +43,7 @@ config_schema:
       type: integer
       minimum: 3
       maximum: 60
-      default: 9
+      default: 15
       multipleOf: 3
     imagePromptPrefix:
       type: string
