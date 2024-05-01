@@ -129,7 +129,7 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
         let modifiedMessage = null;
         let extensionMessage = null;
         if(this.won()) {
-            extensionMessage = "-- Important System Note: the player(s) have reached the exit of The Maze! Game Won! --"
+            extensionMessage = "-- Important System Note: the player(s) have reached the exit of The Maze! Game Won! --";
         } else if (this.quit) {
             extensionMessage = "-- Important System Note: the player(s) have given up and quit. The way out is now revealed to them, but they have lost forever. --";
         }
@@ -153,7 +153,7 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
             isBot
         } = botMessage;
         let modifiedMessage = null;
-        let systemMessage = "```\nAvailable Directions:\n";
+        let systemMessage = "";
         if(anonymizedId == this.mazeId) {
             if(content.includes('```')) {
                 modifiedMessage = content.substring(0, content.indexOf('```'));
@@ -177,27 +177,32 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
                 seed: 0}).then(image => {
                 this.image = image != null ? image.url : '';
             });
-            const current = this.maze[this.userLocation.posX][this.userLocation.posY];
             let avail = [];
-            if(!current.walls[MazeWall.up]) {
-                avail.push('up');
-            }
-            if(!current.walls[MazeWall.down]) {
-                avail.push('down');
-            }
-            if(!current.walls[MazeWall.left]) {
-                avail.push('left');
-            }
-            if(!current.walls[MazeWall.right]) {
-                avail.push('right');
-            }
-            if(!this.quit) {
-                avail.push('quit');
+            if(this.userLocation.posX == 0 || this.userLocation.posY == 0 || this.userLocation.posX >= this.maze.length - 1 || this.userLocation.posY >= this.maze[0].length - 1) {
+                systemMessage = "```\nMaze Complete.\n```"
             } else {
-                avail.push('retry');
+                systemMessage = "```\nAvailable Directions:\n";
+                const current = this.maze[this.userLocation.posX][this.userLocation.posY];
+                if(!current.walls[MazeWall.up]) {
+                    avail.push('up');
+                }
+                if(!current.walls[MazeWall.down]) {
+                    avail.push('down');
+                }
+                if(!current.walls[MazeWall.left]) {
+                    avail.push('left');
+                }
+                if(!current.walls[MazeWall.right]) {
+                    avail.push('right');
+                }
+                if(!this.quit) {
+                    avail.push('quit');
+                } else {
+                    avail.push('retry');
+                }
+                systemMessage += `[ ${avail.join(', ')} ]`;
+                systemMessage += "\n```";
             }
-            systemMessage += `[ ${avail.join(', ')} ]`;
-            systemMessage += "\n```";
         }
         return {
             extensionMessage: null,
@@ -215,6 +220,9 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
     visit() {
         for (let r = -1; r < 2; r++) {
             for (let c = -1; c < 2; c++) {
+                if (r < 0 || c < 0 || r >= this.maze.length || c >= this.maze[0].length) {
+                    continue;
+                }
                 this.maze[this.userLocation.posX + r][this.userLocation.posY + c].visited = true;
                 if (!this.visited[this.userLocation.posX + r]) {
                     this.visited[this.userLocation.posX + r] = new Set();
@@ -227,7 +235,7 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
 
     render(): ReactElement {
         return <>
-            <SquareMaze grid={this.maze} userLocation={this.userLocation} quit={this.quit} />
+            <SquareMaze grid={this.maze} userLocation={this.userLocation} quit={this.quit || this.won()} />
             {this.image != null && this.image != '' && <img src={this.image} />}
         </>
     }
