@@ -220,7 +220,7 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
     visit() {
         for (let r = -1; r < 2; r++) {
             for (let c = -1; c < 2; c++) {
-                if (r < 0 || c < 0 || r >= this.maze.length || c >= this.maze[0].length) {
+                if (this.userLocation.posX + r < 0 || this.userLocation.posY + c < 0 || this.userLocation.posX + r >= this.maze.length || this.userLocation.posY + c >= this.maze[0].length) {
                     continue;
                 }
                 this.maze[this.userLocation.posX + r][this.userLocation.posY + c].visited = true;
