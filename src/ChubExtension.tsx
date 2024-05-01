@@ -158,7 +158,12 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
             if(content.includes('```')) {
                 modifiedMessage = content.substring(0, content.indexOf('```'));
             }
-            let prompt = this.imagePromptPrefix + modifiedMessage != null ? modifiedMessage : content;
+            let prompt = this.imagePromptPrefix;
+            if (modifiedMessage != null) {
+                prompt += modifiedMessage
+            } else {
+                prompt += content;
+            }
             if(content.includes('<')) {
                 let end = content.length;
                 if(content.includes('>')) {

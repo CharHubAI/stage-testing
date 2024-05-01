@@ -58,7 +58,7 @@ img {
   left: 50%;
   top: 50%;
   z-index: 2;
-  opacity: 70%;
+  opacity: 60%;
   transform: translate(-50%, -50%);
   background-color: darkolivegreen;
 }
@@ -67,7 +67,7 @@ img {
 // Take full height if screen is wider
 @media (min-aspect-ratio: 1/1) {
   img {
-    height: 100vh;
+    width: 100vw;
   }
   .quit {
     height: 100vh;
@@ -80,7 +80,7 @@ img {
 // Take full width if screen is taller
 @media (max-aspect-ratio: 1/1) {
   img {
-    width: 100vw;
+    height: 100vh;
   }
   .quit {
     width: 100vw;
