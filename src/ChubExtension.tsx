@@ -96,8 +96,9 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
             promptForId
         } = userMessage;
         let moved = false;
+        const lowerString = content.toLowerCase();
         Object.values(MazeWall).forEach(wall => {
-            if(content.includes(wall)) {
+            if(lowerString.includes(wall)) {
                 const wallEnum = MazeWall[wall as keyof typeof MazeWall];
                 while(canMove(wallEnum, this.maze[this.userLocation.posX][this.userLocation.posY], moved, this.userLocation, this.size)) {
                     switch (wallEnum) {
@@ -121,9 +122,9 @@ export class ChubExtension extends Extension<InitStateType, ChatStateType, Messa
                 }
             }
         });
-        if (content.includes('quit')) {
+        if (lowerString.includes('quit')) {
             this.quit = true;
-        } else if (content.includes('retry')) {
+        } else if (lowerString.includes('retry')) {
             this.quit = false;
         }
         let modifiedMessage = null;
