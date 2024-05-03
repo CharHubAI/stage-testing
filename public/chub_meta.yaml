@@ -83,3 +83,4 @@ permissions:
 # github_path: 'https://github.com/CharHubAI/extension-template'
 # extension_id: 'extension-template-5523da8cf7de'
 extension_id: 'maze-extension-4cd023370343'
+github_path: 'https://github.com/lloorree/maze-extension'
