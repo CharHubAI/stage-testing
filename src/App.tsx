@@ -1,4 +1,4 @@
-import {ReactRunner} from "chub-extensions-ts";
+import {ReactRunner} from "@chub-ai/stages-ts";
 import {ChubExtension} from "./ChubExtension.tsx";
 import {TestExtensionRunner} from "./TestRunner.tsx";
 

@@ -1,6 +1,6 @@
 import {ChubExtension} from "./ChubExtension.tsx";
 import {useEffect, useState} from "react";
-import {DEFAULT_INITIAL, DEFAULT_MESSAGE, Extension, ExtensionResponse, InitialData} from "chub-extensions-ts";
+import {DEFAULT_INITIAL, DEFAULT_MESSAGE, Extension, ExtensionResponse, InitialData} from "@chub-ai/stages-ts";
 
 // Modify this JSON to include whatever character/user information you want to test.
 import InitData from './assets/test-init.json';

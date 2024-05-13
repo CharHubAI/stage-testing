@@ -1,6 +1,6 @@
 import {ReactElement} from "react";
-import {AspectRatio, Extension, ExtensionResponse, InitialData, Message} from "chub-extensions-ts";
-import {LoadResponse} from "chub-extensions-ts/dist/types/load";
+import {AspectRatio, Extension, ExtensionResponse, InitialData, Message} from "@chub-ai/stages-ts";
+import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
 import SquareMaze, {generateMaze} from "./SquareMaze.tsx";
 import {deserializeVisited} from "./solver.ts";
 import {canMove, deserializeMazeCell, MazeGrid, MazeWall} from "./maze.ts";
