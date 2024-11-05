@@ -17,7 +17,7 @@ visibility: 'UNLISTED'
 # 'ADJACENT' is default. The frame will display on the side of the
 #   chat on desktop and above/in the top half of the chat on mobile.
 # 'NONE' will not display, only run.
-position: 'ADJACENT'
+position: 'COVER'
 
 # Self-explanatory.
 tags:
@@ -77,10 +77,3 @@ ratings_disabled: false
 #    but currently does nothing.
 permissions:
 
-# extension_id is automatically generated on push with a new project;
-#    you should not make or set this value.
-# github_path will be added if it does not exist. It is the URL of the repo.
-# github_path: 'https://github.com/CharHubAI/extension-template'
-# extension_id: 'extension-template-5523da8cf7de'
-extension_id: 'maze-extension-4cd023370343'
-github_path: 'https://github.com/lloorree/maze-extension'
