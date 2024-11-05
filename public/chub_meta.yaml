@@ -77,3 +77,4 @@ ratings_disabled: false
 #    but currently does nothing.
 permissions:
 
+github_path: 'https://github.com/CharHubAI/stage-testing'
